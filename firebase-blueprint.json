@@ -1,0 +1,35 @@
+{
+  "entities": {
+    "Assessment": {
+      "title": "Assessment",
+      "description": "An exit readiness assessment containing answers, score, and matches",
+      "type": "object",
+      "properties": {
+        "score": {
+          "type": "number",
+          "description": "Total calculated exit readiness score out of 100"
+        },
+        "matches": {
+          "type": "array",
+          "description": "Array of matched acquirer names"
+        },
+        "answers": {
+          "type": "object",
+          "description": "An object of quiz IDs and chosen numeric answers"
+        },
+        "createdAt": {
+          "type": "object",
+          "format": "timestamp",
+          "description": "Server timestamp when the assessment was completed"
+        }
+      },
+      "required": ["score", "matches", "answers", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/assessments/{assessmentId}": {
+      "schema": "Assessment",
+      "description": "Sub-collection of exit readiness assessments taken by each user"
+    }
+  }
+}

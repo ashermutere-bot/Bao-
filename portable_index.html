@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bao - The Exit Readiness Platform for African Tech Startups</title>
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts Header & Body -->
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['Sora', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Firebase Compat SDK CDNs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    /* Sleek customized layout definitions */
+    body {
+      background-color: #f8fafc;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .text-display {
+      font-family: 'Sora', sans-serif;
+    }
+    /* Smooth transitions */
+    .transition-custom {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* Hide scrollbars but preserve scrolling */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-900 selection:bg-emerald-150 selection:text-emerald-900">
+
+  <!-- ==========================================
+      SECURE RIBBON STATUS BAR
+      ========================================== -->
+  <div id="db-status-ribbon" class="bg-amber-500/10 text-amber-800 border-b border-amber-500/20 text-xs font-medium py-2 px-4 transition-all">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+      <span id="ribbon-text-status">
+        <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>
+        <strong>Dashboard Storage:</strong> Local Sandbox active. Click configure icon to connect real Firebase Firestore.
+      </span>
+      <button onclick="toggleConfigModal(true)" class="px-2.5 py-1 bg-white hover:bg-slate-550 border border-slate-200 text-[10px] font-bold text-slate-800 rounded transition-custom shadow-sm">
+        <i class="fa-solid fa-database mr-1"></i> Configure Firebase Keys
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+      NAVIGATION HEADER
+      ========================================== -->
+  <nav class="h-16 bg-[#0f172a] flex items-center justify-between px-6 md:px-12 shrink-0 shadow-lg z-20 relative">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-emerald-500 rounded-lg flex items-center justify-center font-bold text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:rotate-6 transition-custom cursor-pointer">
+        <span class="text-xl font-extrabold text-display">B</span>
+      </div>
+      <a href="#" class="text-2xl font-extrabold text-white tracking-tight text-display">BAO</a>
+      <span class="text-emerald-400 text-[10px] font-extrabold px-2 py-0.5 bg-emerald-500/15 rounded-full border border-emerald-500/30">BETA</span>
+    </div>
+
+    <!-- Right Side Actions -->
+    <div class="flex items-center gap-6 text-xs font-semibold text-slate-300">
+      <div class="hidden md:flex items-center gap-6">
+        <a href="#features-section" class="hover:text-emerald-400 transition-custom">Features</a>
+        <a href="#pricing-section" class="hover:text-emerald-400 transition-custom">Pricing</a>
+      </div>
+
+      <div class="h-4 w-[1px] bg-slate-800 hidden md:block"></div>
+
+      <!-- Auth State Segment -->
+      <div id="nav-auth-container">
+        <!-- Will be dynamically updated by JS engine -->
+        <div class="flex items-center gap-3">
+          <button onclick="openAuthModal('login')" class="px-3 py-2 text-slate-300 hover:text-white transition-custom">Sign In</button>
+          <button onclick="openAuthModal('signup')" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-900 font-bold rounded-lg shadow-md shadow-emerald-500/20 transition-custom">Create Account</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==========================================
+      1. HERO SECTION
+      ========================================== -->
+  <header class="relative bg-[#0f172a] text-white py-20 overflow-hidden">
+    <div class="absolute top-1/2 left-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+    
+    <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-semibold mb-6">
+        <i class="fa-solid fa-shield-halved text-emerald-500"></i> Evaluate, Strategize and Package for Emerging Pan-African Mergers & Acquisitions
+      </div>
+      
+      <h1 class="text-4xl md:text-6xl font-black tracking-tight leading-[1.1] mb-6 text-display">
+        Your Exit Readiness Score. <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">Instantly.</span>
+      </h1>
+      
+      <p class="text-lg md:text-xl text-slate-300 font-medium max-w-2xl mx-auto mb-10 leading-relaxed">
+        Bao guides African founders to quantify operational team scale, customer concentration, and country compliance into structured institutional buyer boxes.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button onclick="startAssessment()" class="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 text-base font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition-custom flex items-center justify-center gap-2">
+          Start Exit Readiness Assessment <i class="fa-solid fa-chevron-right ml-1"></i>
+        </button>
+        <button onclick="injectDemoData()" class="w-full sm:w-auto px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-xl border border-slate-700 transition-custom">
+          Load Sample Assessment
+        </button>
+      </div>
+
+      <div class="mt-16 flex flex-wrap justify-center items-center gap-x-12 gap-y-6 text-xs text-slate-405 font-bold border-t border-slate-800/60 pt-8">
+        <span class="text-slate-400">STRATEGIC ACQUIRERS EVALUATED:</span>
+        <span class="text-slate-300">STRIPE</span>
+        <span class="text-slate-300">HELIOS</span>
+        <span class="text-slate-300">VISA</span>
+        <span class="text-slate-300">ACTIS</span>
+        <span class="text-slate-300">GOOGLE AFRICA</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================
+      2. FEATURES SECTION
+      ========================================== -->
+  <section id="features-section" class="py-20 max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-extrabold text-slate-900 mb-4 text-display">Systematic Diligence Blueprint</h2>
+      <p class="text-slate-500 text-lg max-w-xl mx-auto">Providing granular, high-fidelity alignment mapping across West, East, and Southern African corridors.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Feature 1 -->
+      <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-custom">
+        <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-6 text-emerald-500 border border-emerald-100">
+          <i class="fa-solid fa-chart-line text-lg"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900 mb-3 text-display">1. Instant Exit Score</h3>
+        <p class="text-slate-500 text-sm leading-relaxed mb-4">
+          Quantify transactional and qualitative structures over 15 proprietary criteria matching valuation metrics used by global mergers and acquisitions boards.
+        </p>
+        <div class="text-xs font-bold text-emerald-600">
+          15 Core Metrics Evaluated <i class="fa-solid fa-check ml-1"></i>
+        </div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-custom">
+        <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-6 text-emerald-500 border border-emerald-100">
+          <i class="fa-solid fa-arrows-split-up-and-left text-lg"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900 mb-3 text-display">2. Acquirer Match Intelligence</h3>
+        <p class="text-slate-500 text-sm leading-relaxed mb-4">
+          Match your core parameters instantly with actual valuation thresholds defined by pan-African growth funds and active corporate acquirers.
+        </p>
+        <div class="text-xs font-bold text-emerald-600">
+          12 M&A Suitor Engines <i class="fa-solid fa-check ml-1"></i>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-custom">
+        <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-6 text-emerald-500 border border-emerald-100">
+          <i class="fa-solid fa-route text-lg"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900 mb-3 text-display">3. Actionable Roadmap</h3>
+        <p class="text-slate-500 text-sm leading-relaxed mb-4">
+          Isolate precise action triggers (such as reducing concentration or hardening IP) required to scale up multiple tiers for high-premium exits.
+        </p>
+        <div class="text-xs font-bold text-emerald-600">
+          Complete Feedback Report <i class="fa-solid fa-check ml-1"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+      3. THE 15-QUESTION QUIZ CONTAINER
+      ========================================== -->
+  <section id="quiz-section" class="py-12 bg-slate-100/80 hidden">
+    <div class="max-w-3xl mx-auto px-6">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+        
+        <!-- Header status -->
+        <div class="bg-[#0f172a] text-white px-8 py-5 flex items-center justify-between">
+          <div>
+            <span id="quiz-category-badge" class="text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1 rounded-full uppercase tracking-wider">
+              Financials
+            </span>
+            <span class="text-slate-400 text-xs ml-2">KPI Track</span>
+          </div>
+          <span id="quiz-progress-text" class="text-xs font-bold text-slate-300">Question 1 of 15</span>
+        </div>
+
+        <!-- Progress Bar Indicator -->
+        <div class="w-full h-1.5 bg-slate-100">
+          <div id="quiz-progress-fill" class="h-full bg-emerald-500 transition-all duration-300" style="width: 6.66%;"></div>
+        </div>
+
+        <div class="p-8 md:p-12">
+          <h3 id="quiz-question-title" class="text-xl md:text-2xl font-extrabold text-slate-900 mb-8 min-h-[64px] text-display">
+            What is your current Annual Recurring Revenue (ARR)?
+          </h3>
+
+          <div class="mb-10">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Select your choice value</label>
+            <select id="quiz-answer-select" onchange="answerSelected()" class="w-full p-4 text-sm bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:outline-none focus:border-emerald-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <!-- Helper block -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-250/20 flex gap-3 text-xs text-slate-500 mb-8">
+            <div class="w-5 h-5 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-600 shrink-0">i</div>
+            <p id="quiz-helper-text">
+              ARR sets your absolute baseline acquirer tier. High values unlock Stripe, Visa, and Salesforce CRM matches.
+            </p>
+          </div>
+
+          <!-- Bottom Control actions -->
+          <div class="flex items-center justify-between border-t border-slate-100 pt-8">
+            <button onclick="prevQuestion()" id="quiz-prev-btn" class="px-5 py-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 flex items-center gap-1.5 hover:bg-slate-50 transition-custom disabled:opacity-20">
+              <i class="fa-solid fa-chevron-left text-[10px]"></i> Previous
+            </button>
+            <button onclick="nextQuestion()" id="quiz-next-btn" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-custom disabled:bg-slate-200" disabled>
+              Next KPI <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+      4. ASSESSMENT RESULTS & VISUAL METER
+      ========================================== -->
+  <section id="results-section" class="py-16 bg-white border-t border-b border-slate-200 hidden">
+    <div class="max-w-7xl mx-auto px-6">
+      
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-10">
+        <div>
+          <span class="inline-block px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg border border-emerald-100 uppercase mb-2">Metrics Summary Analyzed</span>
+          <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 ready-title text-display">Your Exit Readiness Score Card</h2>
+          <p class="text-slate-500 text-sm mt-1">Based on full analysis of enterprise compliance, geography reach, customer concentration, and ARR indicators.</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button onclick="exportJSON()" class="px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800 rounded-xl">
+            <i class="fa-solid fa-code mr-1"></i> Export JSON Data
+          </button>
+          <button onclick="saveResultsToDashboard()" id="save-results-btn" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5">
+            Save Assessment to Dashboard <i class="fa-solid fa-circle-check"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Big Round Meter Gauge -->
+        <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-center relative overflow-hidden min-h-[340px]">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16 opacity-30"></div>
+          
+          <p class="text-slate-400 text-xs font-bold tracking-widest uppercase mb-4">Enterprise Score Index</p>
+          
+          <div class="relative flex flex-col items-center">
+            <div id="results-score-border" class="w-36 h-36 rounded-full border-[10px] border-emerald-500 bg-slate-50 flex flex-col items-center justify-center mb-4 text-center shadow-inner">
+              <span id="results-score-number" class="text-5xl font-black text-slate-900 leading-none">78</span>
+              <span class="text-slate-400 text-[10px] font-bold mt-1">/ 100</span>
+            </div>
+            
+            <span id="results-score-badge" class="font-extrabold uppercase tracking-wide text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600">
+              Excellent Readiness
+            </span>
+          </div>
+
+          <div class="mt-8 w-full border-t border-slate-100 pt-6">
+            <div class="grid grid-cols-4 gap-1 text-[9px] font-bold text-center uppercase tracking-wider">
+              <div class="text-red-500">Inception<br>&lt;40</div>
+              <div class="text-amber-500">Scale<br>&lt;60</div>
+              <div class="text-blue-500">Venture<br>&lt;75</div>
+              <div class="text-emerald-500">Excellent<br>&gt;=75</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Breakdown summary -->
+        <div class="lg:col-span-2 bg-[#0f172a] rounded-3xl p-8 text-white flex flex-col justify-between">
+          <div>
+            <h3 class="text-lg font-bold mb-6 text-emerald-400 border-b border-slate-800 pb-3 flex items-center gap-2">
+              <i class="fa-solid fa-gauge-high text-sm"></i> Strategic Performance Segments
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-xs">
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-slate-400">Annual Recurring Revenue:</span>
+                <strong id="summary-revenue" class="text-white max-w-[155px] truncate">Unanswered</strong>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-slate-400">Yearly Revenue Growth:</span>
+                <strong id="summary-growth" class="text-white max-w-[155px] truncate">Unanswered</strong>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-slate-400">Operating EBITDA Margin:</span>
+                <strong id="summary-profitability" class="text-white max-w-[155px] truncate">Unanswered</strong>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-slate-400">Customer Diversity:</span>
+                <strong id="summary-customers" class="text-white max-w-[155px] truncate">Unanswered</strong>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-slate-400">Core Tech Architecture:</span>
+                <strong id="summary-tech" class="text-white max-w-[155px] truncate">Unanswered</strong>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-slate-400">Active Countries:</span>
+                <strong id="summary-geography" class="text-white max-w-[155px] truncate">Unanswered</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 p-4 bg-slate-850 rounded-xl border border-slate-700/50 flex gap-3 text-xs">
+            <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold shrink-0">
+              <i class="fa-solid fa-lightbulb"></i>
+            </div>
+            <p class="text-slate-300 text-xs leading-relaxed">
+              <strong>Premium Multiple Boost:</strong> Consolidating your geographic reach into 4+ African countries improves your corporate multiplier by up to 25% at transaction close.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Institutional Acquirer list matches -->
+      <div class="mt-12">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2 text-display">
+            Strategic Institutional Acquirers <span id="results-count-badge" class="px-2.5 py-0.5 bg-slate-200 text-slate-700 text-xs font-bold rounded-lg">6 Matches</span>
+          </h3>
+          <p class="text-xs text-slate-500">Filtered strictly by: minScore limit and minRevenue brackets</p>
+        </div>
+
+        <div id="results-matches-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Will be dynamically populated -->
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==========================================
+      5. THE DASHBOARD VIEW
+      ========================================== -->
+  <section id="dashboard-section" class="py-12 bg-slate-50 flex-1 hidden">
+    <div class="max-w-7xl mx-auto px-6">
+      
+      <!-- Dashboard Header Row -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h2 class="text-3xl font-extrabold text-slate-900 flex items-center gap-2 text-display">
+            <i class="fa-solid fa-layer-group text-slate-900"></i> Platform Console
+          </h2>
+          <p class="text-slate-550 text-sm">Reviewing historical assessment sessions and live transaction alignments.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="startAssessment()" class="px-4 py-2 bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-custom">
+            New Audit +
+          </button>
+          <button onclick="injectDemoData()" class="px-3 py-2 border border-slate-200 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-705">
+            Load Demo Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics row -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="bg-white p-6 rounded-2xl border border-slate-205 shadow-sm">
+          <p class="text-xs font-bold tracking-wider text-slate-400 uppercase mb-1">Latest Evaluated score</p>
+          <div class="flex items-baseline gap-1.5">
+            <span id="dash-stat-score" class="text-3xl font-black text-slate-900">--</span>
+            <span class="text-slate-400 text-xs font-medium">/100</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-2">Latest verified score matrix</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-205 shadow-sm">
+          <p class="text-xs font-bold tracking-wider text-slate-400 uppercase mb-1">Assessments Saved</p>
+          <div class="flex items-baseline gap-1.5">
+            <span id="dash-stat-saved" class="text-3xl font-black text-slate-900">0</span>
+            <span class="text-slate-400 text-xs font-medium">assessments</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-2">Stored directly inside persistent DB</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-205 shadow-sm">
+          <p class="text-xs font-bold tracking-wider text-slate-400 uppercase mb-1">Acquirer Alignments</p>
+          <div class="flex items-baseline gap-1.5">
+            <span id="dash-stat-acquirers" class="text-3xl font-black text-slate-900">--</span>
+            <span class="text-slate-400 text-xs font-medium">suitors matching</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-2">Checked against 12 buyer files</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Logs List (Left) -->
+        <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8">
+          <h3 class="text-base font-extrabold text-slate-900 mb-6 border-b border-slate-100 pb-3 flex items-center gap-1.5 text-display">
+            <i class="fa-solid fa-list text-xs text-slate-400"></i> Historical Audit History Log
+          </h3>
+
+          <div id="dash-history-list" class="space-y-4">
+            <!-- Dynamically computed -->
+            <div class="py-12 text-center text-slate-400">
+              <i class="fa-regular fa-folder-open text-3xl mb-3 block text-slate-300"></i>
+              <p class="text-sm font-semibold">No Saved Assessments Yet</p>
+              <p class="text-xs max-w-xs mx-auto mt-1 mb-5 text-slate-500">Run the exit assessment quiz to verify operational points.</p>
+              <button onclick="startAssessment()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs rounded-lg shadow">
+                Process First Audit
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strategy guide card (Right) -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 mb-4 border-b border-slate-100 pb-3 flex items-center gap-1.5 text-display">
+              <i class="fa-solid fa-bolt text-emerald-500"></i> Governance Readiness
+            </h3>
+
+            <div class="space-y-4 text-xs leading-relaxed text-slate-600">
+              <div>
+                <strong class="text-slate-800 block mb-1">📕 Audited Trial Accounts</strong>
+                <p class="text-[11px]">suitors will thoroughly inspect your banking credentials, monthly historical P&L, corporate registers, and general accounting. Keep everything organized inside an escrow folder.</p>
+              </div>
+              <div>
+                <strong class="text-slate-800 block mb-1">🗺️ Corporate Restructuring</strong>
+                <p class="text-[11px]">Creating a holding framework in Mauritius, Delaware, or the United Kingdom simplifies cross-border intellectual property transactions for international acquirers.</p>
+              </div>
+              <div>
+                <strong class="text-slate-800 block mb-1">⛓️ Contract Hardening</strong>
+                <p class="text-[11px]">Translate loose commercial handshake agreements into formal service contracts to protect ARR from post-sale cohort churn.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 bg-slate-900 rounded-2xl p-5 text-white">
+            <h4 class="text-xs font-bold text-emerald-400 mb-2 uppercase tracking-wide">Premium M&amp;A Brokerage</h4>
+            <p class="text-[10px] text-slate-300 leading-relaxed mb-4">
+              Get direct introductions to active capital dealmakers. Our concierge services assist founders with structure validation and pricing audits.
+            </p>
+            <a href="#pricing-section" class="block text-center py-2 bg-emerald-500 hover:bg-emerald-600 font-bold rounded-lg text-[11px] text-slate-950 transition-colors">
+              Compare Licensing Options
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==========================================
+      6. PRICING SECTION
+      ========================================== -->
+  <section id="pricing-section" class="py-20 bg-slate-900 text-white shrink-0 relative z-10 scroll-mt-6">
+    <div class="max-w-7xl mx-auto px-6">
+      
+      <div class="text-center mb-16">
+        <span class="inline-block px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">
+          Pricing Tiers
+        </span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-display">Flexible M&amp;A Advisory Subscriptions</h2>
+        <p class="text-slate-400 text-sm max-w-lg mx-auto mt-2">Unlock comprehensive cloud storage, custom compliance documentation files, and escrow consulting options.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Tier 1 -->
+        <div class="bg-slate-850 border border-slate-800/80 p-8 rounded-2xl hover:scale-[1.01] transition-custom flex flex-col justify-between">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Starter Sandbox</span>
+            <h3 class="text-2xl font-bold text-white mb-4">Free</h3>
+            <div class="h-[1px] bg-slate-800 my-4"></div>
+            <ul class="space-y-3 text-xs text-slate-300">
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Full 15-question quiz access</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Basic core score index</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Local persistent cache logs</li>
+              <li class="text-slate-500 line-through"><i class="fa-solid fa-xmark mr-2 text-slate-600"></i> Verified PDF Briefings</li>
+            </ul>
+          </div>
+          <button onclick="startAssessment()" class="w-full mt-8 py-3 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl text-xs text-center transition-custom">
+            Start Free Assessment
+          </button>
+        </div>
+
+        <!-- Tier 2 -->
+        <div class="bg-slate-850 p-8 rounded-2xl border-2 border-emerald-500 hover:scale-[1.02] transition-custom flex flex-col justify-between relative shadow-xl shadow-emerald-900/10">
+          <span class="absolute top-0 right-6 -translate-y-1/2 bg-emerald-500 text-slate-950 font-bold text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider">Most Popular</span>
+          <div>
+            <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block mb-1">Executive Pro</span>
+            <h3 class="text-2xl font-extrabold text-white mb-4">$299<span class="text-xs text-slate-400 font-normal">/month</span></h3>
+            <div class="h-[1px] bg-slate-800 my-4"></div>
+            <ul class="space-y-3 text-xs text-slate-300">
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Cloud database synchronization</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Custom individual reports history</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Deep profile matching matrices</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Verified PDF Briefing documents</li>
+            </ul>
+          </div>
+          <button onclick="openAuthModal('signup')" class="w-full mt-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-xl text-xs text-center transition-custom shadow-md shadow-emerald-500/15">
+            Upgrade to Pro
+          </button>
+        </div>
+
+        <!-- Tier 3 -->
+        <div class="bg-slate-850 border border-slate-800/80 p-8 rounded-2xl hover:scale-[1.01] transition-custom flex flex-col justify-between">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Brokerage Enterprise</span>
+            <h3 class="text-2xl font-bold text-white mb-4">$1,499<span class="text-xs text-slate-400 font-normal">/month</span></h3>
+            <div class="h-[1px] bg-slate-800 my-4"></div>
+            <ul class="space-y-3 text-xs text-slate-300">
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Continuous M&amp;A consulting channel</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Legal transaction due-diligence support</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Escrow introducción triggers</li>
+              <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Priority legal support line</li>
+            </ul>
+          </div>
+          <button onclick="requestCall()" class="w-full mt-8 py-3 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl text-xs text-center transition-custom">
+            Request Consultation Call
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==========================================
+      7. JOIN THE WAITLIST NEWSLETTER
+      ========================================== -->
+  <section class="py-16 bg-white border-t border-slate-200">
+    <div class="max-w-3xl mx-auto px-6 text-center">
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 mb-3 text-display">Join the Founder Syndicate Waitlist</h2>
+      <p class="text-slate-500 text-sm max-w-lg mx-auto mb-8">
+        Get monthly exit performance reports, strategic multiples analysis, and regional compliance briefs directly in your inbox.
+      </p>
+
+      <div id="waitlist-card-box">
+        <form onsubmit="joinWaitlist(event)" class="flex flex-col sm:flex-row items-center gap-3 max-w-md mx-auto">
+          <input id="waitlist-email-field" type="email" required placeholder="ceo@company.africa" class="w-full px-4 py-3 text-xs bg-slate-50 border border-slate-250 rounded-xl focus:outline-none focus:border-emerald-500 font-semibold" />
+          <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs rounded-xl cursor-pointer shrink-0 transition-custom">
+            Join Waitlist
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+      8. FOOTER / INTELLIGENCE STATUS BAR
+      ========================================== -->
+  <footer class="bg-slate-900 border-t border-slate-800 py-12 px-6 md:px-12 text-xs text-slate-400 shrink-0">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2">
+        <span class="font-extrabold text-white text-base font-serif">B</span>
+        <span class="font-black text-white tracking-widest text-display">BAO</span>
+        <span class="text-slate-500 ml-2">© 2026 Bao. Built for African founders.</span>
+      </div>
+      
+      <div class="flex flex-wrap items-center gap-6">
+        <span class="flex items-center gap-2 text-slate-300">
+          <span class="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
+          <span class="text-emerald-400 font-bold">M&amp;A Analytics Online</span>
+        </span>
+        <span>Support: <b>founders@bao.africa</b></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================
+      9. INTERACTIVE POPUP MODALS
+      ========================================== -->
+
+  <!-- Firebase Configuration Setting Modal -->
+  <div id="config-modal" class="fixed inset-0 bg-slate-950/80 z-50 flex items-center justify-center p-6 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full border border-slate-200 overflow-hidden shadow-2xl">
+      <div class="bg-[#0f172a] text-white px-6 py-4 flex justify-between items-center">
+        <h3 class="font-bold text-sm text-display"><i class="fa-solid fa-database text-emerald-550"></i> Connect Firebase Keys</h3>
+        <button onclick="toggleConfigModal(false)" class="text-slate-400 hover:text-white text-sm">✖</button>
+      </div>
+      
+      <form onsubmit="applyFirebaseConfig(event)" class="p-6 md:p-8 space-y-4 text-xs">
+        <p class="text-slate-500 leading-relaxed text-[11px] mb-3">
+          Type your client-side web configuration keys. Saving them initiates genuine user authentication and Firestore assessments saving!
+        </p>
+
+        <div>
+          <label class="block font-bold text-slate-500 uppercase mb-1">Web API Key</label>
+          <input type="text" id="cfg-apiKey" placeholder="AIzaSy..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-500 uppercase mb-1">Project ID</label>
+          <input type="text" id="cfg-projectId" placeholder="bao-exit-1234..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-500 uppercase mb-1">Auth Domain</label>
+          <input type="text" id="cfg-authDomain" placeholder="bao-exit-1234.firebaseapp.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-500 uppercase mb-1">App ID</label>
+          <input type="text" id="cfg-appId" placeholder="1:123456:web:..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg" />
+        </div>
+
+        <div class="pt-4 flex gap-2">
+          <button type="button" onclick="disconnectRealFirebase()" class="flex-1 py-2 text-center text-red-500 font-bold hover:bg-red-55/10 rounded-lg transition-colors">
+            Disconnect Live
+          </button>
+          <button type="submit" class="flex-1 py-2 bg-slate-900 text-white rounded-lg font-bold">
+            Apply Keys
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Executive Authentication Modal -->
+  <div id="auth-modal" class="fixed inset-0 bg-slate-950/80 z-50 flex items-center justify-center p-6 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full border border-slate-200 overflow-hidden shadow-2xl">
+      
+      <div class="bg-slate-900 text-white px-6 py-5 flex justify-between items-center">
+        <h3 id="auth-modal-title" class="font-bold text-sm text-display">Sign In Session</h3>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white text-xs">✖</button>
+      </div>
+
+      <form onsubmit="submitAuthForm(event)" class="p-6 md:p-8 space-y-4 text-xs">
+        <div id="auth-error-block" class="p-3 bg-red-50 border border-red-105 text-[10px] font-bold text-red-700 rounded-xl leading-relaxed hidden">
+          Credentials mismatch.
+        </div>
+
+        <div id="auth-company-row">
+          <label class="block font-bold text-slate-400 uppercase tracking-wider mb-1.5">Company Name</label>
+          <input type="text" id="auth-company" placeholder="e.g. SwahiliPay Ltd" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-400 uppercase tracking-wider mb-1.5">Executive Email</label>
+          <input type="email" required id="auth-email" placeholder="ceo@company.africa" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-400 uppercase tracking-wider mb-1.5">Password</label>
+          <input type="password" required id="auth-password" placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold" />
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-bold rounded-xl shadow-md transition-custom">
+          Authenticate Session
+        </button>
+
+        <div class="text-center pt-2">
+          <button type="button" onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-slate-500 hover:text-emerald-600 font-semibold underline">
+            Already have an account? Sign In Instead
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Custom status message banner toast -->
+  <div id="toast-banner" class="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-xl border bg-white border-slate-200 text-slate-900 hidden transition-all">
+    <div id="toast-side-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+    <span id="toast-text-field" class="text-xs font-semibold">Message completed!</span>
+  </div>
+
+  <!-- ==========================================
+      10. EMBEDDED SYSTEM JAVASCRIPT ENGINE
+      ========================================== -->
+  <script>
+    // ==========================================
+    // SYSTEM CONSTANTS
+    // ==========================================
+    const QUESTIONS = [
+      {
+        id: 'revenue',
+        category: 'Financials',
+        label: 'What is your current Annual Recurring Revenue (ARR)?',
+        options: [
+          { value: 0, label: '$0 - $100K' },
+          { value: 1, label: '$100K - $500K' },
+          { value: 2, label: '$500K - $1M' },
+          { value: 3, label: '$1M - $5M' },
+          { value: 4, label: '$5M+' }
+        ]
+      },
+      {
+        id: 'growth',
+        category: 'Financials',
+        label: 'What is your Year-over-Year (YoY) revenue growth rate?',
+        options: [
+          { value: 0, label: 'Negative / Flat' },
+          { value: 1, label: '1% - 25%' },
+          { value: 2, label: '25% - 50%' },
+          { value: 3, label: '50% - 100%' },
+          { value: 4, label: '100%+' }
+        ]
+      },
+      {
+        id: 'profitability',
+        category: 'Financials',
+        label: 'What is your operating EBITDA margin?',
+        options: [
+          { value: 0, label: 'Negative / Flat' },
+          { value: 1, label: '0% - 20%' },
+          { value: 2, label: '20% - 40%' },
+          { value: 3, label: '40% - 60%' },
+          { value: 4, label: '60%+' }
+        ]
+      },
+      {
+        id: 'team',
+        category: 'Operations',
+        label: 'What is the current scale of your full-time team?',
+        options: [
+          { value: 0, label: '1 - 5 team members' },
+          { value: 1, label: '6 - 15 team members' },
+          { value: 2, label: '16 - 50 team members' },
+          { value: 3, label: '51 - 150 team members' },
+          { value: 4, label: '150+ team members' }
+        ]
+      },
+      {
+        id: 'tech',
+        category: 'Technology',
+        label: 'What is the age and documentation status of your core tech stack?',
+        options: [
+          { value: 0, label: '5+ years old with heavy legacy debt' },
+          { value: 1, label: '3 - 5 years old with moderate debt' },
+          { value: 2, label: '1 - 3 years old with clean codebase' },
+          { value: 3, label: '<1 year old, highly agile architecture' },
+          { value: 4, label: 'Modern stack, pristine and fully documented API infrastructure' }
+        ]
+      },
+      {
+        id: 'customers',
+        category: 'Market Stability',
+        label: 'What is your current level of customer concentration?',
+        options: [
+          { value: 0, label: 'One client accounts for 50%+ of revenue' },
+          { value: 1, label: 'One client accounts for 30%+ of revenue' },
+          { value: 2, label: 'Top 3 clients account for 50%+ of revenue' },
+          { value: 3, label: 'Top 5 clients account for 50%+ of revenue' },
+          { value: 4, label: 'Well-diversified, high-granularity portfolio' }
+        ]
+      },
+      {
+        id: 'churn',
+        category: 'Market Stability',
+        label: 'What is your annual Gross revenue churn rate?',
+        options: [
+          { value: 0, label: '20% or higher' },
+          { value: 1, label: '10% - 20%' },
+          { value: 2, label: '5% - 10%' },
+          { value: 3, label: '2% - 5%' },
+          { value: 4, label: 'Less than 2%' }
+        ]
+      },
+      {
+        id: 'market',
+        category: 'Market Stability',
+        label: 'What is the Total Addressable Market (TAM) of your primary sector?',
+        options: [
+          { value: 0, label: 'Under $100 Million' },
+          { value: 1, label: '$100M - $500 Million' },
+          { value: 2, label: '$500M - $1 Billion' },
+          { value: 3, label: '$1B - $5 Billion' },
+          { value: 4, label: '$5 Billion+' }
+        ]
+      },
+      {
+        id: 'funding',
+        category: 'Financials',
+        label: 'How much external venture or credit funding have you raised?',
+        options: [
+          { value: 0, label: '$0 (Fully bootstrapped)' },
+          { value: 1, label: 'Less than $1 Million' },
+          { value: 2, label: '$1M - $5 Million' },
+          { value: 3, label: '$5M - $20 Million' },
+          { value: 4, label: '$20 Million+' }
+        ]
+      },
+      {
+        id: 'ip',
+        category: 'Technology',
+        label: 'What is the status of your proprietary Intellectual Property (IP)?',
+        options: [
+          { value: 0, label: 'None registered or pending' },
+          { value: 1, label: 'Patent pending / fully prepared files' },
+          { value: 2, label: '1 - 3 Registered Patents or brand trademarks' },
+          { value: 3, label: '4 - 10 Registered Patents' },
+          { value: 4, label: '10+ Registered Patents' }
+        ]
+      },
+      {
+        id: 'regulatory',
+        category: 'Operations',
+        label: 'How would you rate your operating compliance & regulatory exposure?',
+        options: [
+          { value: 0, label: 'Unsure / No robust audit audit trails' },
+          { value: 1, label: 'Unregulated / Gray market exposure' },
+          { value: 2, label: 'Light regional regulatory oversight' },
+          { value: 3, label: 'Moderate standard regional framework compliance' },
+          { value: 4, label: 'Highly compliant, pan-African audit framework' }
+        ]
+      },
+      {
+        id: 'geography',
+        category: 'Operations',
+        label: 'In how many African nations does your startup operate?',
+        options: [
+          { value: 0, label: '1 country' },
+          { value: 1, label: '2 - 3 countries' },
+          { value: 2, label: '4 - 6 countries' },
+          { value: 3, label: '7 - 10 countries' },
+          { value: 4, label: '10+ African countries' }
+        ]
+      },
+      {
+        id: 'partnerships',
+        category: 'Operations',
+        label: 'What is the scale of your current corporate or strategic partnerships?',
+        options: [
+          { value: 0, label: 'None' },
+          { value: 1, label: '1 - 2 informal local partner channels' },
+          { value: 2, label: '3 - 5 formal active local channels' },
+          { value: 3, label: '5 - 10 formal commercial partnerships' },
+          { value: 4, label: '10+ Global distribution agreements' }
+        ]
+      },
+      {
+        id: 'brand',
+        category: 'Market Stability',
+        label: 'How is your brand recognized inside your target sectors?',
+        options: [
+          { value: 0, label: 'Unknown / Localized' },
+          { value: 1, label: 'Nationally recognized inside home country' },
+          { value: 2, label: 'Regionally recognized (e.g. West or East Africa)' },
+          { value: 3, label: 'Continentally recognized across multiple hubs' },
+          { value: 4, label: 'Globally recognized emerging pioneer' }
+        ]
+      },
+      {
+        id: 'exit',
+        category: 'Financials',
+        label: 'What is the present status of inbound exit interest or discussions?',
+        options: [
+          { value: 0, label: 'Never, zero inbound curiosity' },
+          { value: 1, label: '1 - 2 casual inquiries received' },
+          { value: 2, label: '3 - 5 serious informational meetings held' },
+          { value: 3, label: 'Had formal term sheets in hand historically' },
+          { value: 4, label: 'Currently in active, formal acquisition negotiations' }
+        ]
+      }
+    ];
+
+    const ACQUIRERS = [
+      { name: 'Stripe', logo: 'ST', description: 'Seeking expansion in Pan-African payment infrastructure and cross-border settlement.', minRevenue: 3, minScore: 70 },
+      { name: 'Visa', logo: 'VI', description: 'Focused on global mobile interoperability, high-volume merchant networks, and wallet gateways.', minRevenue: 3, minScore: 75 },
+      { name: 'Helios Investment', logo: 'HI', description: 'Interest in Series B+ level operational tech teams with strong regional governance and growth models.', minRevenue: 2, minScore: 60 },
+      { name: 'Salesforce', logo: 'SF', description: 'Potential interest in CRM verticalization, commercial portals, and SaaS tools for the emerging enterprise market.', minRevenue: 3, minScore: 72 },
+      { name: 'Naspers/Prosus', logo: 'NP', description: 'Leading investment arm checking large fintech backbones, cross-border retail, and general consumer tech.', minRevenue: 3, minScore: 65 },
+      { name: 'Actis', logo: 'AC', description: 'Looking to acquire mature core digital foundations, data network lines, and digital security centers across Africa.', minRevenue: 2, minScore: 55 },
+      { name: 'TLcom Capital', logo: 'TL', description: 'Seeking mid-to-late stage scale players with deep local tech innovations and product differentiation.', minRevenue: 1, minScore: 50 },
+      { name: 'Omidyar', logo: 'OM', description: 'Impact-aligned strategic capital backing highly transparent consumer finance and open banking API systems.', minRevenue: 1, minScore: 45 },
+      { name: 'IFC/CDC', logo: 'IF', description: 'Development partners supporting heavily compliant local digital infrastructure scaling across diverse hubs.', minRevenue: 2, minScore: 50 },
+      { name: 'Google Africa Fund', logo: 'GA', description: 'Interested in core mobile platforms, high-impact regional databases, and artificial intelligence grids.', minRevenue: 2, minScore: 65 },
+      { name: 'Partech Africa', logo: 'PA', description: 'Seeks exceptional tech organizations solving critical B2B commerce and localized fintech roadblocks.', minRevenue: 1, minScore: 50 },
+      { name: 'FMO', logo: 'FM', description: 'Targeting commercial fintechs with reliable environmental-social-governance (ESG) reporting standards.', minRevenue: 2, minScore: 55 }
+    ];
+
+    // ==========================================
+    // SEED & GLOBAL STATES
+    // ==========================================
+    let firebaseAppInstance = null;
+    let cloudDb = null;
+    let cloudAuth = null;
+
+    let globalUser = JSON.parse(localStorage.getItem('bao_local_user')) || null;
+    let globalAssessments = JSON.parse(localStorage.getItem('bao_local_assessments')) || [];
+    let activeAnswers = {};
+    let currentQuestionIndex = 0;
+    let computedResult = null;
+    let currentAuthMode = 'login';
+
+    // Helper text keys corresponding to active questioning helper box
+    const HELPERS = {
+      revenue: 'ARR sets your absolute baseline acquirer tier. High values unlock Stripe, Visa, and Salesforce CRM matches.',
+      growth: 'YoY growth compounds multiple evaluations. 50%+ demonstrates clear market momentum.',
+      profitability: 'Margins show fiscal health. Solid EBITDA reduces dependency on continuous funding.',
+      team: 'Operations size validates governance capabilities and product delivery redundancy.',
+      tech: 'Pure microservice development mitigates integration drag and buyer inspection delays.',
+      customers: 'Low concentration protects overall business against individual contract failure.',
+      churn: 'High cohort retention proves deep product value and lowers recurring marketing overhead.',
+      market: 'A large Addressable Market assures international suitors that you possess scalable headroom.',
+      funding: 'Capital history shows investor board leverage and exit valuation floor targets.',
+      ip: 'Registered patents protect software margins and present robust legal barriers to entry.',
+      regulatory: 'Legal auditable setups are crucial for international buyers doing cross-jurisdictional audits.',
+      geography: 'Pan-African compliance positions legal entity entities as solid acquisition targets.',
+      partnerships: 'Formal alliances confirm product fit and existing customer distribution lines.',
+      brand: 'Regional and continental market status multiplies the strategic valuation premium.',
+      exit: 'Existing LOIs or serious inbound negotiations signal real-time market desirability.'
+    };
+
+    // ==========================================
+    // INITIALIZATION & LIFECYCLE
+    // ==========================================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadFirebaseFromLocalConfig();
+      syncUIAuthState();
+      syncDashboardLogs();
+    });
+
+    function loadFirebaseFromLocalConfig() {
+      const savedConfig = localStorage.getItem('bao_keys_firebase');
+      if (savedConfig) {
+        try {
+          const parsed = JSON.parse(savedConfig);
+          if (parsed.apiKey && !parsed.apiKey.includes('YOUR_')) {
+            // Initialize compat SDK
+            firebaseAppInstance = firebase.apps.length === 0 ? firebase.initializeApp(parsed) : firebase.app();
+            cloudDb = firebaseAppInstance.firestore();
+            cloudAuth = firebaseAppInstance.auth();
+
+            // Set ribbon indicator to secure
+            document.getElementById('db-status-ribbon').className = "bg-emerald-500/10 text-emerald-800 border-b border-emerald-500/20 text-xs font-medium py-2 px-4 transition-all";
+            document.getElementById('ribbon-text-status').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500 mr-2"></i><strong>Live Cloud Active:</strong> Connected to secure remote Firestore database.`;
+            
+            // Populate config inputs
+            document.getElementById('cfg-apiKey').value = parsed.apiKey;
+            document.getElementById('cfg-projectId').value = parsed.projectId;
+            document.getElementById('cfg-authDomain').value = parsed.authDomain;
+            document.getElementById('cfg-appId').value = parsed.appId;
+
+            // Load remote listener
+            cloudAuth.onAuthStateChanged(firebaseUser => {
+              if (firebaseUser) {
+                globalUser = {
+                  uid: firebaseUser.uid,
+                  email: firebaseUser.email,
+                  displayName: firebaseUser.displayName || 'Executive Founder'
+                };
+                localStorage.setItem('bao_local_user', JSON.stringify(globalUser));
+                
+                // Fetch user remote records
+                cloudDb.collection('users').doc(firebaseUser.uid).collection('assessments')
+                  .orderBy('createdAt', 'desc')
+                  .get()
+                  .then(snapshot => {
+                    const list = [];
+                    snapshot.forEach(doc => {
+                      const d = doc.data();
+                      list.push({
+                        id: doc.id,
+                        score: d.score,
+                        matches: d.matches || [],
+                        answers: d.answers || {},
+                        createdAt: d.createdAt?.toDate()?.toISOString() || new Date().toISOString()
+                      });
+                    });
+                    globalAssessments = list;
+                    localStorage.setItem('bao_local_assessments', JSON.stringify(list));
+                    syncDashboardLogs();
+                  })
+                  .catch(err => {
+                    console.error("error fetching cloud sync: ", err);
+                  });
+              } else {
+                globalUser = null;
+                localStorage.removeItem('bao_local_user');
+              }
+              syncUIAuthState();
+            });
+          }
+        } catch(e) {
+          console.error("Firebase startup err:", e);
+        }
+      }
+    }
+
+    // ==========================================
+    // SECURITY AUTH ACTIONS
+    // ==========================================
+    function syncUIAuthState() {
+      const container = document.getElementById('nav-auth-container');
+      if (globalUser) {
+        container.innerHTML = `
+          <div class="flex items-center gap-3">
+            <button onclick="showSection('dashboard')" class="px-3.5 py-1.5 rounded-lg border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-custom flex items-center gap-1.5">
+              <i class="fa-solid fa-square-poll-vertical text-xs"></i> Console
+            </button>
+            <div class="text-right hidden sm:block">
+              <p class="text-white font-bold leading-none">${globalUser.displayName || 'Executive'}</p>
+              <p class="text-slate-400 text-[10px] leading-relaxed truncate max-w-[110px]">${globalUser.email}</p>
+            </div>
+            <button onclick="performSignOut()" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-custom" title="Sign Out">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="flex items-center gap-2">
+            <button onclick="openAuthModal('login')" class="px-3.5 py-2 text-slate-300 hover:text-white transition-custom">Sign In</button>
+            <button onclick="openAuthModal('signup')" class="px-4.5 py-2 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-900 font-bold rounded-lg transition-custom text-xs shadow-md shadow-emerald-500/10">Create Account</button>
+          </div>
+        `;
+      }
+    }
+
+    function openAuthModal(mode = 'login') {
+      currentAuthMode = mode;
+      document.getElementById('auth-modal').classList.remove('hidden');
+      document.getElementById('auth-error-block').classList.add('hidden');
+      document.getElementById('auth-email').value = '';
+      document.getElementById('auth-password').value = '';
+      
+      const title = document.getElementById('auth-modal-title');
+      const toggleBtn = document.getElementById('auth-toggle-btn');
+      const rowComp = document.getElementById('auth-company-row');
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      if (mode === 'signup') {
+        title.innerHTML = '<i class="fa-solid fa-user-plus text-emerald-400 mr-1.5"></i> Register Executive Account';
+        toggleBtn.innerText = "Already have an account? Sign In Instead";
+        rowComp.classList.remove('hidden');
+        submitBtn.innerText = "Complete Executive Registration";
+      } else {
+        title.innerHTML = '<i class="fa-solid fa-lock text-emerald-400 mr-1.5"></i> Executive Access';
+        toggleBtn.innerText = "Don't have an corporate account? Sign Up for Free";
+        rowComp.classList.add('hidden');
+        submitBtn.innerText = "Authenticate Session";
+      }
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.add('hidden');
+    }
+
+    function toggleAuthMode() {
+      openAuthModal(currentAuthMode === 'signup' ? 'login' : 'signup');
+    }
+
+    async function submitAuthForm(event) {
+      event.preventDefault();
+      const email = document.getElementById('auth-email').value;
+      const pw = document.getElementById('auth-password').value;
+      const name = document.getElementById('auth-company').value || 'Executive';
+      const errorBlock = document.getElementById('auth-error-block');
+
+      if (cloudAuth) {
+        try {
+          if (currentAuthMode === 'signup') {
+            const cred = await cloudAuth.createUserWithEmailAndPassword(email, pw);
+            await cred.user.updateProfile({ displayName: name });
+            globalUser = { uid: cred.user.uid, email: cred.user.email, displayName: name };
+          } else {
+            const cred = await cloudAuth.signInWithEmailAndPassword(email, pw);
+            globalUser = { uid: cred.user.uid, email: cred.user.email, displayName: cred.user.displayName || 'Founder' };
+          }
+          localStorage.setItem('bao_local_user', JSON.stringify(globalUser));
+          closeAuthModal();
+          triggerToast('Successfully registered and synchronized corporate account!', 'success');
+          syncUIAuthState();
+          
+          if (computedResult) {
+            saveResultsToDashboard();
+          }
+        } catch(err) {
+          errorBlock.innerText = err.message;
+          errorBlock.classList.remove('hidden');
+        }
+      } else {
+        // Fallback Mock authentication flow
+        globalUser = {
+          uid: 'demo_' + Math.random().toString(36).substr(2, 9),
+          email: email,
+          displayName: name
+        };
+        localStorage.setItem('bao_local_user', JSON.stringify(globalUser));
+        closeAuthModal();
+        triggerToast(`Signed in to Local Sandbox cache successfully as ${globalUser.displayName}`, 'success');
+        syncUIAuthState();
+        
+        if (computedResult) {
+          saveResultsToDashboard();
+        }
+      }
+    }
+
+    function performSignOut() {
+      if (cloudAuth) {
+        cloudAuth.signOut();
+      }
+      globalUser = null;
+      globalAssessments = [];
+      localStorage.removeItem('bao_local_user');
+      localStorage.removeItem('bao_local_assessments');
+      syncUIAuthState();
+      syncDashboardLogs();
+      triggerToast('Executive session logged out.', 'info');
+      showSection('home');
+    }
+
+    // ==========================================
+    // INTERACTIVE QUIZ ENGINE
+    // ==========================================
+    function startAssessment() {
+      activeAnswers = {};
+      currentQuestionIndex = 0;
+      computedResult = null;
+      
+      document.getElementById('quiz-section').classList.remove('hidden');
+      document.getElementById('results-section').classList.add('hidden');
+      document.getElementById('dashboard-section').classList.add('hidden');
+      
+      renderQuestionStep();
+      
+      document.getElementById('quiz-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderQuestionStep() {
+      const q = QUESTIONS[currentQuestionIndex];
+      
+      // Update header badges
+      document.getElementById('quiz-category-badge').innerText = q.category;
+      document.getElementById('quiz-progress-text').innerText = `KPI Checklist ${currentQuestionIndex + 1} of ${QUESTIONS.length}`;
+      
+      const pct = Math.round(((currentQuestionIndex + 1) / QUESTIONS.length) * 100);
+      document.getElementById('quiz-progress-fill').style.width = `${pct}%`;
+
+      // Update question text
+      document.getElementById('quiz-question-title').innerText = q.label;
+      document.getElementById('quiz-helper-text').innerText = HELPERS[q.id] || '';
+
+      // Populate dropdown values
+      const select = document.getElementById('quiz-answer-select');
+      select.innerHTML = `<option value="" disabled selected>-- Click to Select Option --</option>`;
+      q.options.forEach(o => {
+        const isSel = activeAnswers[q.id] === o.value ? 'selected' : '';
+        select.innerHTML += `<option value="${o.value}" ${isSel}>${o.label} (Score component: +${o.value})</option>`;
+      });
+
+      // Handle disabled elements
+      document.getElementById('quiz-prev-btn').disabled = currentQuestionIndex === 0;
+      document.getElementById('quiz-next-btn').disabled = activeAnswers[q.id] === undefined;
+      document.getElementById('quiz-next-btn').innerText = (currentQuestionIndex === QUESTIONS.length - 1) ? 'Submit Assessment' : 'Next KPI';
+    }
+
+    function answerSelected() {
+      const q = QUESTIONS[currentQuestionIndex];
+      const val = document.getElementById('quiz-answer-select').value;
+      if (val !== "") {
+        activeAnswers[q.id] = Number(val);
+        document.getElementById('quiz-next-btn').disabled = false;
+      }
+    }
+
+    function prevQuestion() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestionStep();
+      }
+    }
+
+    function nextQuestion() {
+      if (activeAnswers[QUESTIONS[currentQuestionIndex].id] === undefined) return;
+
+      if (currentQuestionIndex < QUESTIONS.length - 1) {
+        currentQuestionIndex++;
+        renderQuestionStep();
+      } else {
+        // Evaluate inputs
+         calculateScoringMatrix();
+      }
+    }
+
+    // ==========================================
+    // SCORE & ALIGNMENT CALCULATION (KPI METRICS)
+    // ==========================================
+    function calculateScoringMatrix() {
+      let scoreAcc = 0;
+      QUESTIONS.forEach(q => {
+        scoreAcc += (activeAnswers[q.id] !== undefined) ? activeAnswers[q.id] : 0;
+      });
+
+      const maxPoints = QUESTIONS.length * 4; // 15 questions * 4 max val = 60
+      const finalScore = Math.round((scoreAcc / maxPoints) * 100);
+
+      const userRevenue = activeAnswers['revenue'] !== undefined ? activeAnswers['revenue'] : 0;
+
+      // Filter matches depending on minScore & minRevenue filters
+      const matchNames = ACQUIRERS.filter(acquirer => {
+        return (
+          finalScore >= acquirer.minScore && 
+          userRevenue >= acquirer.minRevenue
+        );
+      }).sort((a,b) => b.minScore - a.minScore).map(a => a.name);
+
+      computedResult = {
+        score: finalScore,
+        matches: matchNames.slice(0, 6), // displayed top 6 matches
+        answers: activeAnswers
+      };
+
+      renderAssessmentResults();
+    }
+
+    function getScoreCategory(score) {
+      if (score < 40) return { label: 'Inception Phase', bg: 'bg-red-500/10', color: 'text-red-500', border: 'border-red-500' };
+      if (score < 60) return { label: 'Scale Phase', bg: 'bg-amber-500/10', color: 'text-amber-500', border: 'border-amber-500' };
+      if (score < 75) return { label: 'Venture Ready', bg: 'bg-blue-500/10', color: 'text-blue-500', border: 'border-blue-500' };
+      return { label: 'Excellent Exit Readiness', bg: 'bg-emerald-500/10', color: 'text-emerald-500', border: 'border-emerald-500' };
+    }
+
+    function getSelectedOptionLabel(questionId) {
+      const idx = activeAnswers[questionId];
+      if (idx === undefined) return 'Unanswered';
+      const q = QUESTIONS.find(qi => qi.id === questionId);
+      return q ? q.options.find(o => o.value === idx).label : 'Unanswered';
+    }
+
+    function renderAssessmentResults() {
+      document.getElementById('quiz-section').classList.add('hidden');
+      document.getElementById('results-section').classList.remove('hidden');
+
+      const score = computedResult.score;
+      const cat = getScoreCategory(score);
+
+      // Render meter elements
+      document.getElementById('results-score-number').innerText = score;
+      document.getElementById('results-score-badge').innerText = cat.label;
+      document.getElementById('results-score-badge').className = `font-extrabold uppercase tracking-wide text-xs px-3 py-1 rounded-full ${cat.bg} ${cat.color}`;
+      document.getElementById('results-score-border').className = `w-36 h-36 rounded-full border-[10px] bg-slate-50 flex flex-col items-center justify-center mb-4 text-center shadow-inner ${cat.border}`;
+
+      // Populate text breakdowns
+      document.getElementById('summary-revenue').innerText = getSelectedOptionLabel('revenue');
+      document.getElementById('summary-growth').innerText = getSelectedOptionLabel('growth');
+      document.getElementById('summary-profitability').innerText = getSelectedOptionLabel('profitability');
+      document.getElementById('summary-customers').innerText = getSelectedOptionLabel('customers');
+      document.getElementById('summary-tech').innerText = getSelectedOptionLabel('tech');
+      document.getElementById('summary-geography').innerText = getSelectedOptionLabel('geography');
+
+      // Populate acquirer matches
+      const grid = document.getElementById('results-matches-grid');
+      const badge = document.getElementById('results-count-badge');
+      grid.innerHTML = '';
+      badge.innerText = `${computedResult.matches.length} Matches`;
+
+      if (computedResult.matches.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-1 md:col-span-3 bg-slate-50 border border-slate-200 rounded-2xl p-10 text-center text-slate-500">
+            <i class="fa-solid fa-building-circle-exclamation text-3xl text-amber-500 mb-3"></i>
+            <p class="text-sm font-bold">No Valid Institutional Acquirer Matches Identified</p>
+            <p class="text-xs mt-1">Acquirers require higher ARR thresholds (min revenue) or a higher overall scorecard index. Check your answers or test another simulation!</p>
+          </div>
+        `;
+      } else {
+        computedResult.matches.forEach(name => {
+          const acq = ACQUIRERS.find(a => a.name === name);
+          if (acq) {
+            grid.innerHTML += `
+              <div class="bg-white p-5 rounded-2xl border border-slate-200 hover:border-slate-300 transition-custom hover:scale-[1.01] shadow-sm flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-start mb-4">
+                    <div class="w-10 h-10 bg-slate-900 text-emerald-400 rounded-lg flex items-center justify-center font-black text-sm tracking-widest leading-none">
+                      ${acq.logo}
+                    </div>
+                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 uppercase tracking-widest">
+                      Alignment Verified
+                    </span>
+                  </div>
+                  
+                  <h4 class="font-extrabold text-base text-slate-900 mb-1">${acq.name}</h4>
+                  <p class="text-xs text-slate-500 leading-relaxed mb-4">${acq.description}</p>
+                </div>
+
+                <div class="border-t border-slate-100 pt-3 flex justify-between text-[10px] font-bold text-slate-400">
+                  <span>MIN REVENUE VAL: ${acq.minRevenue}+</span>
+                  <span>REQ SCORE: ${acq.minScore}%+</span>
+                </div>
+              </div>
+            `;
+          }
+        });
+      }
+
+      document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ==========================================
+    // PERSISTENCE ENGINE (FIREBASE / LOCAL CACHE)
+    // ==========================================
+    async function saveResultsToDashboard() {
+      if (!computedResult) return;
+
+      if (!globalUser) {
+        triggerToast('Sign in or Sign up to permanently log exit summaries.', 'info');
+        openAuthModal('signup');
+        return;
+      }
+
+      const saveBtn = document.getElementById('save-results-btn');
+      saveBtn.innerText = "Saving to dashboard...";
+      saveBtn.disabled = true;
+
+      const record = {
+        score: computedResult.score,
+        matches: computedResult.matches,
+        answers: computedResult.answers,
+        createdAt: new Date().toISOString()
+      };
+
+      if (cloudDb) {
+        try {
+          await cloudDb.collection('users').doc(globalUser.uid).collection('assessments').add({
+            score: record.score,
+            matches: record.matches,
+            answers: record.answers,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          triggerToast('Successfully synchronized with the Live Firestore!', 'success');
+          
+          // Refresh list from cloud
+          const snapshot = await cloudDb.collection('users').doc(globalUser.uid).collection('assessments').orderBy('createdAt', 'desc').get();
+          const list = [];
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            list.push({
+              id: doc.id,
+              score: d.score,
+              matches: d.matches || [],
+              answers: d.answers || {},
+              createdAt: d.createdAt?.toDate()?.toISOString() || new Date().toISOString()
+            });
+          });
+          globalAssessments = list;
+          localStorage.setItem('bao_local_assessments', JSON.stringify(list));
+        } catch(err) {
+          triggerToast(`Failed saving to Firestore: ${err.message}`, 'error');
+        }
+      } else {
+        // Fallback local Cache List
+        globalAssessments = [record, ...globalAssessments];
+        localStorage.setItem('bao_local_assessments', JSON.stringify(globalAssessments));
+        triggerToast('Saved securely to local dashboard cache log!', 'success');
+      }
+
+      saveBtn.innerText = "Save Assessment to Dashboard";
+      saveBtn.disabled = false;
+      syncDashboardLogs();
+      showSection('dashboard');
+    }
+
+    function syncDashboardLogs() {
+      const historyList = document.getElementById('dash-history-list');
+      
+      // Update quick metrics counters
+      const latest = globalAssessments[0];
+      document.getElementById('dash-stat-score').innerText = latest ? latest.score : '--';
+      document.getElementById('dash-stat-saved').innerText = globalAssessments.length;
+      document.getElementById('dash-stat-acquirers').innerText = latest ? latest.matches.length : '--';
+
+      if (globalAssessments.length === 0) {
+        historyList.innerHTML = `
+          <div class="py-12 text-center text-slate-400">
+            <i class="fa-regular fa-folder-open text-3xl mb-3 block text-slate-350"></i>
+            <p class="text-sm font-semibold">No Saved Assessments Yet</p>
+            <p class="text-xs max-w-xs mx-auto mt-1 mb-5">Deploy the exit assessment quiz to verify corporate scoring points.</p>
+            <button onclick="startAssessment()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs rounded-lg shadow cursor-pointer">
+              Process First Audit
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      historyList.innerHTML = '';
+      globalAssessments.forEach((record, index) => {
+        const cat = getScoreCategory(record.score);
+        const dateStr = new Date(record.createdAt).toLocaleDateString();
+        
+        let subBadges = '';
+        if (record.matches) {
+          record.matches.forEach(m => {
+            subBadges += `<span class="px-1.5 py-0.5 bg-slate-200/60 rounded text-[9px] font-semibold text-slate-600 mr-1">${m}</span>`;
+          });
+        }
+
+        historyList.innerHTML += `
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-custom hover:border-slate-300">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-[#0f172a] text-emerald-400 text-lg font-black flex items-center justify-center shrink-0">
+                ${record.score}
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-900">Assessment ID #${globalAssessments.length - index} — ${cat.label}</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">Taken on: ${dateStr}</p>
+                <div class="flex flex-wrap items-center mt-1.5">
+                  ${subBadges || '<span class="text-[9px] text-slate-400 font-semibold uppercase">No active matches</span>'}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 border-t md:border-t-0 border-slate-200/50 pt-3 md:pt-0">
+              <button onclick="loadRecordIntoView(${index})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-white rounded-lg text-[10px] font-bold transition-custom">
+                Load Report
+              </button>
+              <button onclick="deleteRecordEntry(${index})" class="p-1.5 border border-slate-200 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-custom">
+                <i class="fa-regular fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function loadRecordIntoView(index) {
+      const record = globalAssessments[index];
+      if (!record) return;
+      activeAnswers = record.answers || {};
+      computedResult = {
+        score: record.score,
+        matches: record.matches || []
+      };
+      
+      showSection('results');
+      triggerToast('Loaded past diagnostic values into metrics board.', 'info');
+    }
+
+    async function deleteRecordEntry(index) {
+      if (!confirm("Are you sure you want to delete this recorded assessment?")) return;
+      
+      const record = globalAssessments[index];
+      if (cloudDb && record && record.id) {
+        try {
+          await cloudDb.collection('users').doc(globalUser.uid).collection('assessments').doc(record.id).delete();
+          triggerToast('Assessment entry removed from Live Firestore cloud.', 'success');
+        } catch(err) {
+          triggerToast(`Database error deleting: ${err.message}`, 'error');
+        }
+      }
+
+      globalAssessments.splice(index, 1);
+      localStorage.setItem('bao_local_assessments', JSON.stringify(globalAssessments));
+      triggerToast('Assessment deleted.', 'info');
+      syncDashboardLogs();
+    }
+
+    function injectDemoData() {
+      const demoAnswers = {
+        revenue: 3,
+        growth: 3,
+        profitability: 2,
+        team: 2,
+        tech: 3,
+        customers: 3,
+        churn: 3,
+        market: 3,
+        funding: 2,
+        ip: 2,
+        regulatory: 3,
+        geography: 2,
+        partnerships: 2,
+        brand: 2,
+        exit: 2
+      };
+
+      activeAnswers = demoAnswers;
+      calculateScoringMatrix();
+      triggerToast('Loaded SwahiliPay Ltd exit-planning demonstration sample matrix.', 'success');
+    }
+
+    // ==========================================
+    // AUXILIARY UTILITIES
+    // ==========================================
+    function showSection(name) {
+      // Manage view components toggles
+      document.getElementById('quiz-section').classList.add('hidden');
+      document.getElementById('results-section').classList.add('hidden');
+      document.getElementById('dashboard-section').classList.add('hidden');
+
+      if (name === 'quiz') document.getElementById('quiz-section').classList.remove('hidden');
+      if (name === 'results') document.getElementById('results-section').classList.remove('hidden');
+      if (name === 'dashboard') document.getElementById('dashboard-section').classList.remove('hidden');
+
+      const el = document.getElementById(`${name}-section`) || document.getElementById('features-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function triggerToast(msg, type = 'info') {
+      const toast = document.getElementById('toast-banner');
+      const text = document.getElementById('toast-text-field');
+      const dot = document.getElementById('toast-side-dot');
+
+      text.innerText = msg;
+      if (type === 'success') {
+        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+        toast.className = "fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-xl border bg-white border-emerald-100 text-slate-900";
+      } else if (type === 'error') {
+        dot.className = "w-2.5 h-2.5 rounded-full bg-red-500";
+        toast.className = "fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-xl border bg-red-50 border-red-150 text-red-950";
+      } else {
+        dot.className = "w-2.5 h-2.5 rounded-full bg-blue-500";
+        toast.className = "fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-xl border bg-slate-900 border-slate-800 text-white";
+      }
+
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 4000);
+    }
+
+    function toggleConfigModal(show) {
+      const el = document.getElementById('config-modal');
+      if (show) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    }
+
+    function applyFirebaseConfig(e) {
+      e.preventDefault();
+      const keys = {
+        apiKey: document.getElementById('cfg-apiKey').value,
+        projectId: document.getElementById('cfg-projectId').value,
+        authDomain: document.getElementById('cfg-authDomain').value,
+        appId: document.getElementById('cfg-appId').value,
+        storageBucket: `${document.getElementById('cfg-projectId').value}.appspot.com`,
+        messagingSenderId: '55667788'
+      };
+
+      localStorage.setItem('bao_keys_firebase', JSON.stringify(keys));
+      toggleConfigModal(false);
+      triggerToast('Firebase keys saved! Refreshing alignment...', 'info');
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    }
+
+    function disconnectRealFirebase() {
+      localStorage.removeItem('bao_keys_firebase');
+      toggleConfigModal(false);
+      triggerToast('Firebase disconnected. Reloading offline cache...', 'info');
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    }
+
+    function exportJSON() {
+      if (!computedResult) return;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(computedResult, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "bao_assessment_report.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      triggerToast('Downloaded assessment report as JSON.', 'success');
+    }
+
+    function requestCall() {
+      const email = globalUser ? globalUser.email : 'ceo@your-brand.africa';
+      triggerToast('Conierge consultation request initialized! email check is pending.', 'success');
+    }
+
+    function joinWaitlist(e) {
+      e.preventDefault();
+      const emailF = document.getElementById('waitlist-email-field').value;
+      if (emailF) {
+        document.getElementById('waitlist-card-box').innerHTML = `
+          <div class="max-w-md mx-auto p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-800 text-xs font-bold flex items-center justify-center gap-2">
+            <i class="fa-solid fa-circle-check text-emerald-600"></i> Thank you! You have successfully been added to the Bao syndicate waitlist.
+          </div>
+        `;
+        triggerToast('Waitlist successfully added!', 'success');
+      }
+    }
+  </script>
+</body>
+</html>

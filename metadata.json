@@ -1,0 +1,6 @@
+{
+  "name": "Bao",
+  "description": "The Exit Readiness Platform for African Tech Startups",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
